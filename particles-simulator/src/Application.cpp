@@ -9,7 +9,7 @@ Application* Application::m_instance;
 Application::Application()
 {
     PS_LOG("Application constructed.");
-    m_window = std::unique_ptr<Window>(Window::create());
+    m_window = std::unique_ptr<Window>(Window::getInstance());
 
     APP_BIND_EVENT(WindowClose);
     APP_BIND_EVENT(WindowResize);
@@ -35,7 +35,7 @@ Application::~Application()
 }
 
 
-Application * Application::create()
+Application * Application::getInstance()
 {
     if (!m_instance) m_instance = new Application();
     return m_instance;
@@ -109,25 +109,32 @@ void Application::onWindowResize(WindowResizeEvent & e)
 void Application::onKeyPress(KeyPressEvent & e)
 {
     int code = e.getKeyCode();
-    PS_EVENT_LOG(e, "Key #%d pressed, repeated %d", code, e.getRepeatState());
+    if (code < 128)
+    {
+        PS_EVENT_LOG(e, "Key %c (#%d) pressed, repeated % d", code, code, e.getRepeatState());
+    }
+    else
+    {
+        PS_EVENT_LOG(e, "Key #%d pressed, repeated % d", code, e.getRepeatState());
+    } 
     
     switch (code)
     {
-    case GLFW_KEY_ESCAPE:
-    {
-        m_isRunning = false;
-        break;
-    }
-    case GLFW_KEY_UP:
-    {
-        m_userPlayer->goUp();
-        break;
-    }
-    case GLFW_KEY_DOWN:
-    {
-        m_userPlayer->goDown();
-        break;
-    }
+        case GLFW_KEY_ESCAPE:
+        {
+            m_isRunning = false;
+            break;
+        }
+        case GLFW_KEY_UP:
+        {
+            //m_userPlayer->goUp();
+            break;
+        }
+        case GLFW_KEY_DOWN:
+        {
+            //m_userPlayer->goDown();
+            break;
+        }
     }
 
     e.m_isHandled = true;
@@ -136,7 +143,15 @@ void Application::onKeyPress(KeyPressEvent & e)
 
 void Application::onKeyRelease(KeyReleaseEvent & e)
 {
-    PS_EVENT_LOG(e, "Key #%d released", e.getKeyCode());
+    int code = e.getKeyCode();
+    if (code < 128)
+    {
+        PS_EVENT_LOG(e, "Key %c (#%d) released", code, code);
+    }
+    else
+    {
+        PS_EVENT_LOG(e, "Key #%d released", code);
+    } 
     e.m_isHandled = true;
 }
 

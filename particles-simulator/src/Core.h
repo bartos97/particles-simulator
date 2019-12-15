@@ -18,8 +18,11 @@ class Core
 {
 public:
     static const std::string PROJECT_ABS_PATH;
+    static std::string stripProjectPath(const std::string& filePath);
+    static std::string stripProjectPath(const char* filePath);
 
 private:
+    Core() = default;
     static std::string getPath();
 };
 

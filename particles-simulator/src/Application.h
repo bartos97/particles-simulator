@@ -13,8 +13,7 @@
 
 
 /**
- * Base class for whole application.
- * Implements Singleton design pattern.
+ * Singleton. Base class for whole application.
  */
 class Application
 {
@@ -28,7 +27,7 @@ public:
      * Object initialization function
      * @return Pointer to (only) instance of this class
      */
-    static Application* create();
+    static Application* getInstance();
 
     /** 
      * Application's "main" function; contains game loop.

@@ -15,6 +15,7 @@ class Window
     
 public:
     ~Window();
+    static Window* getInstance();
 
 private:
     struct DEFAULTS
@@ -23,15 +24,9 @@ private:
         static const char* title;
     };
 
-    Window(const char* title, int width, int height);
-
-    /**
-     * Object initialization function 
-     * @return Pointer to (only) instance of this class
-     */
-    static Window* create(const char* title = DEFAULTS::title, 
-                          int width = DEFAULTS::windowSize,
-                          int height = DEFAULTS::windowSize);
+    Window(const char* title = DEFAULTS::title,
+           int width = DEFAULTS::windowSize,
+           int height = DEFAULTS::windowSize);
 
     /**
      * Function to call every frame refresh

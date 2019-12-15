@@ -5,7 +5,7 @@
 
 // Declaration of static variable (nullptr by default)
 Window* Window::m_instance;
-const char* Window::DEFAULTS::title = "Round Pong";
+const char* Window::DEFAULTS::title = "Particles simulator";
 const int Window::DEFAULTS::windowSize = 800;
 
 
@@ -34,11 +34,11 @@ Window::Window(const char* title, int width, int height)
 }
 
 
-Window* Window::create(const char* title, int width, int height)
+Window* Window::getInstance()
 {
     if (!Window::m_instance)
     {
-        Window::m_instance = new Window(title, width, height);
+        Window::m_instance = new Window();
     }
     return Window::m_instance;
 }
@@ -53,10 +53,10 @@ void Window::onUpdate() noexcept
 
 void Window::initGLFW()
 {
-    int tmpStatus = glfwInit();
-    PS_ASSERT(tmpStatus, "GLFW initialization fail.");
+    int glfwInitStatus = glfwInit();
+    PS_ASSERT(glfwInitStatus, "GLFW initialization fail.");
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
@@ -68,8 +68,8 @@ void Window::initGLFW()
 
 void Window::initGlad()
 {
-    int tmpStatus = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-    PS_ASSERT(tmpStatus, "Glad initialization fail.");
+    int gladInitStatus = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+    PS_ASSERT(gladInitStatus, "Glad initialization fail.");
     PS_LOG("GPU info: \nVendor: %s\nRenderer: %s\nVersion: %s", 
            glGetString(GL_VENDOR),
            glGetString(GL_RENDERER),
@@ -79,14 +79,11 @@ void Window::initGlad()
 
 void Window::createWindow()
 {
-    if (m_data.width == DEFAULTS::windowSize || m_data.height == DEFAULTS::windowSize)
-    {
-        const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-        m_data.height = mode->height - mode->height / 12;
-        m_data.width = m_data.height;
-        m_data.windowCenterX = m_data.width / 2.0;
-        m_data.windowCenterY = m_data.height / 2.0;
-    }
+    const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+    m_data.height = mode->height - mode->height / 12;
+    m_data.width = m_data.height;
+    m_data.windowCenterX = m_data.width / 2.0;
+    m_data.windowCenterY = m_data.height / 2.0;
 
     PS_LOG("Creating window: %dx%d %s", m_data.width, m_data.height, m_data.title.c_str());
     m_window = glfwCreateWindow(m_data.width, m_data.height, m_data.title.c_str(), nullptr, nullptr);

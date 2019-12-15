@@ -1,11 +1,12 @@
 #include "pch.h"
+#include "Log.h"
 
-void GLerrorClear()
+void Log::GLerrorClear()
 {
     while (glGetError() != GL_NO_ERROR);
 }
 
-bool GLerrorCheck()
+bool Log::GLerrorCheck()
 {
     bool retval = true;
     while (GLenum err = glGetError())

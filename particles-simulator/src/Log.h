@@ -1,10 +1,12 @@
 #pragma once
 
+#include "Core.h";
+
 
 #ifdef PS_ENABLE_LOG
     #define PS_LOG(...) \
     { \
-        printf("%s at line %d: ", __FILE__, __LINE__); \
+        printf("%s at line %d: ", Core::stripProjectPath(__FILE__).c_str(), __LINE__); \
         printf(__VA_ARGS__); \
         putchar('\n'); \
     }
@@ -17,9 +19,9 @@
     }
 
     #define GL_CALL(func) \
-        GLerrorClear();\
+        Log::GLerrorClear();\
         func;\
-        PS_ASSERT(GLerrorCheck(), #func" failed.");
+        PS_ASSERT(Log::GLerrorCheck(), #func" failed.");
 #else
     #define PS_LOG(...)
     #define PS_EVENT_LOG(...)
@@ -53,5 +55,12 @@
 #endif // PS_ENABLE_ASSERT
 
 
-void GLerrorClear();
-bool GLerrorCheck();
+class Log
+{
+public:
+    static void GLerrorClear();
+    static bool GLerrorCheck();
+
+private:
+    Log() = default;
+};

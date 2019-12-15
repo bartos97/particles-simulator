@@ -1,1 +1,1 @@
-call bin\windows-Release-x86_64\round-pong\round-pong.exe
+call bin\windows-Release-x86_64\particles-simulator\particles-simulator.exe

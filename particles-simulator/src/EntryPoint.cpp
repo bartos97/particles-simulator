@@ -3,7 +3,7 @@
 
 int main()
 {
-    auto app = Application::create();
+    auto app = Application::getInstance();
     app->run();
     delete app;
     return 0;

@@ -5,6 +5,20 @@
 
 const std::string Core::PROJECT_ABS_PATH = Core::getPath();
 
+std::string Core::stripProjectPath(const std::string& filePath)
+{
+    auto pos = filePath.find(Core::PROJECT_ABS_PATH);
+    if (pos == std::string::npos) return filePath;
+
+    size_t start =  pos + Core::PROJECT_ABS_PATH.size();
+    return filePath.substr(start);
+}
+
+std::string Core::stripProjectPath(const char* filePath)
+{
+    return Core::stripProjectPath(std::string(filePath));
+}
+
 std::string Core::getPath()
 {
     std::string path = std::filesystem::current_path().string();
@@ -21,11 +35,18 @@ std::string Core::getPath()
     char lastChar = path.at(path.size() - 1);
     if (!(lastChar == '\\' || lastChar == '/'))
     {
+    #ifdef PS_SYSTEM_WINDOWS
+        path += '\\';
+    #else
         path += '/';
+    #endif // PS_SYSTEM_WINDOWS
     }
 
     path += TOSTRING(PS_PROJ_NAME);
+#ifdef PS_SYSTEM_WINDOWS
+    path += '\\';
+#else
     path += '/';
-    PS_LOG("Project path: %s", path.c_str());
+#endif // PS_SYSTEM_WINDOWS
     return path;
 }
