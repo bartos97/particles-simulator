@@ -1,0 +1,1 @@
+call bin\windows-Release-x86_64\round-pong\round-pong.exe

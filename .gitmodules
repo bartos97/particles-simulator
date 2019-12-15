@@ -1,0 +1,6 @@
+[submodule "particles-simulator/vendor/GLFW"]
+	path = particles-simulator/vendor/GLFW
+	url = https://github.com/glfw/glfw.git
+[submodule "particles-simulator/vendor/glm"]
+	path = particles-simulator/vendor/glm
+	url = https://github.com/g-truc/glm.git
