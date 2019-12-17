@@ -47,11 +47,12 @@ project "particles-simulator"
 
 	-- Source code files in the project
 	files {
-		"%{prj.name}/src/*",
-		"%{prj.name}/src/Events/*",
-		"%{prj.name}/src/OpenGL/*",
-		"%{prj.name}/src/Game/*",
-		"%{prj.name}/res/Shaders/*",
+		"%{prj.name}/src/**/*",
+		"%{prj.name}/src/*"
+	}
+	removefiles {
+		"*.ignore.*",
+		"**/*.ignore/**"
 	}
 
 	-- Include file search paths for the compiler.

@@ -1,10 +1,11 @@
 #include "pch.h"
 #include "Application.h"
-
+#include "Game/ParticleRenderer.h"
+#include <random>
+#include <cmath>
 
 // Declaration of static variable
 Application* Application::m_instance;
-
 
 Application::Application()
 {
@@ -19,15 +20,14 @@ Application::Application()
     APP_BIND_EVENT(MouseButtonPress);
     APP_BIND_EVENT(MouseButtonRelease);
 
+    //Renderer::setMode(GL_LINE);
 #ifdef PS_DEBUG
-    Renderer::setMode(GL_LINE);
 #else
-    Renderer::setMode(GL_FILL);
 #endif // PS_DEBUG
+    Renderer::setMode(GL_FILL);
 
     m_isRunning = true;
 }
-
 
 Application::~Application()
 {
@@ -46,44 +46,56 @@ void Application::run()
 {
     PS_LOG("App starts running.");
 
-    PlayerModel::generateModel();
-    BallModel::generateModel();
+    const float vertices[] = {
+        -1.0f, 1.0f,
+        1.0f, 1.0f,
+        1.0f, -1.0f,
+        -1.0f, -1.0f
+    };
+    const unsigned int indecies[] = {
+        0, 1, 2,
+        2, 3, 0
+    };
 
-    std::string vertexShaderPath = Core::PROJECT_ABS_PATH + "res/Shaders/basic.vert";
-    std::string fragmentShaderPath = Core::PROJECT_ABS_PATH + "res/Shaders/basic.frag";
-
-    auto basicShaderPtr = std::make_shared<Shader>(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
+    std::string vertexShaderPath = Core::PROJECT_ABS_PATH + "res/Shaders/circle.vert.glsl";
+    std::string fragmentShaderPath = Core::PROJECT_ABS_PATH + "res/Shaders/circle.frag.glsl";
+    auto circleShader = std::make_shared<Shader>(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
 
     BufferLayout layoutVertices2D;
     layoutVertices2D.add<float>(2);
 
-    auto playerVertexArrayPtr = std::make_shared<VertexArray>();
-    VertexBuffer playerVertexBuffer(unsigned int(PlayerModel::getVertices().size() * sizeof(float)), 
-                                    PlayerModel::getVertices().data());
-    ElementBuffer playerElementBuffer(unsigned int(PlayerModel::getIndecies().size()), 
-                                      PlayerModel::getIndecies().data());
-    playerVertexArrayPtr->assignData(playerVertexBuffer, playerElementBuffer, layoutVertices2D);
+    auto va = std::make_shared<VertexArray>();
+    VertexBuffer vb = VertexBuffer(sizeof(float) * 8, vertices);
+    ElementBuffer eb = ElementBuffer(6, indecies);
+    va->assignData(vb, eb, layoutVertices2D);
 
-    auto ballVertexArrayPtr = std::make_shared<VertexArray>();
-    VertexBuffer ballVertexBuffer(unsigned int(BallModel::getVertices().size() * sizeof(float)), 
-                                  BallModel::getVertices().data());
-    ElementBuffer ballElementBuffer(unsigned int(BallModel::getIndecies().size()), 
-                                    BallModel::getIndecies().data());
-    ballVertexArrayPtr->assignData(ballVertexBuffer, ballElementBuffer, layoutVertices2D);
+    ParticleRenderer renderer = ParticleRenderer(circleShader, va);
+    Particle asd = Particle();
 
-    m_userPlayer = std::make_unique<Player>(basicShaderPtr, playerVertexArrayPtr, 0.0);
-    m_opponentPlayer = std::make_unique<Player>(basicShaderPtr, playerVertexArrayPtr, M_PI);
-    m_gameBall = std::make_unique<Ball>(basicShaderPtr, ballVertexArrayPtr, glm::vec2(0.0f, 0.0f));
+    /*Particle particles[500];
+    for (size_t i = 0; i < 500; i++)
+    {
+        particles[i] = Particle(
+            glm::vec2(float(pow(-1, rand()) * rand()) / RAND_MAX, float(pow(-1, rand()) * rand()) / RAND_MAX),
+            glm::vec2(0.0f, 0.0f),
+            0.025f
+        );
+    }*/
 
     PS_LOG("Entering the game loop");
     while (m_isRunning)
     {
         Renderer::clearScreen();
 
-        checkForCollisions();
-        m_userPlayer->render();
-        m_opponentPlayer->render();
-        m_gameBall->render();
+        float sin = std::sin(glfwGetTime());
+        asd.setPosition(glm::vec2(sin, sin));
+        renderer.render(asd);
+
+        /*for (size_t i = 0; i < 500; i++)
+        {
+            particles[i].setPosition(glm::vec2(float(pow(-1, rand()) * rand()) / RAND_MAX, float(pow(-1, rand()) * rand()) / RAND_MAX));
+            renderer.render(particles[i]);
+        }*/
 
         m_window->onUpdate();
     }
@@ -125,16 +137,14 @@ void Application::onKeyPress(KeyPressEvent & e)
             m_isRunning = false;
             break;
         }
-        case GLFW_KEY_UP:
-        {
-            //m_userPlayer->goUp();
-            break;
-        }
-        case GLFW_KEY_DOWN:
-        {
-            //m_userPlayer->goDown();
-            break;
-        }
+        //case GLFW_KEY_UP:
+        //{
+        //    break;
+        //}
+        //case GLFW_KEY_DOWN:
+        //{
+        //    break;
+        //}
     }
 
     e.m_isHandled = true;
@@ -158,27 +168,20 @@ void Application::onKeyRelease(KeyReleaseEvent & e)
 
 void Application::onMouseMove(MouseMoveEvent & e)
 {
+    PS_EVENT_LOG(e, "Mouse move at x:%lf y:%lf", e.getX(), e.getY());
+
     // mouse position received from event are in coordinates system
     // where origin is at window's top left corner, so
     // position (in px) with respect to center of window wiil be:
     double mouseY = m_window->m_data.windowCenterY - e.getY();
-    double mouseX = e.getX() - m_window->m_data.windowCenterX;   
+    double mouseX = e.getX() - m_window->m_data.windowCenterX;
 
-    double angle = std::atan2(mouseY, mouseX);
-    
-#ifdef PS_DEBUG
     //x and y in normalized device coordinates, i.e. [-1, 1]
     mouseX = mouseX / m_window->m_data.windowCenterX;
     mouseY = mouseY / m_window->m_data.windowCenterY;
-    m_gameBall->moveTo(glm::vec2(mouseX, mouseY));
-#endif // PS_DEBUG
 
-    PS_EVENT_LOG(e, "Mouse move at x:%lf y:%lf", mouseX, mouseY);
-
-    if (mouseX > 0.0 && angle < PlayerModel::maxPositionAngle && angle > PlayerModel::minPositionAngle)
-    {
-        m_userPlayer->setPosition(angle);
-    }
+    this->mousePosition.x = float(mouseX);
+    this->mousePosition.y = float(mouseY);
 
     e.m_isHandled = true;
 }
@@ -195,37 +198,4 @@ void Application::onMouseButtonRelease(MouseButtonReleaseEvent & e)
 {
     PS_EVENT_LOG(e, "Mouse button #%d released", e.getButton());
     e.m_isHandled = true;
-}
-
-
-void Application::checkForCollisions()
-{
-    if (m_gameBall->checkBounds())
-    {
-        if (m_userPlayer->checkCollision(m_gameBall))
-        {
-            PS_LOG("Ball collides with user's Player");
-            m_gameBall->bounce(true);
-        }
-        else if (m_opponentPlayer->checkCollision(m_gameBall))
-        {
-            PS_LOG("Ball collides with automatic Player");
-            m_gameBall->bounce(true);
-        }
-        else
-        {
-            if (m_gameBall->getPosition().x < 0.0)
-            {
-                PS_LOG("User wins");
-                m_gameBall->bounce();
-            }
-            else
-            {
-                PS_LOG("User loses");
-                m_gameBall->bounce();
-            }
-
-            //TODO: reset game
-        }
-    }
 }
