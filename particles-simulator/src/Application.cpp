@@ -46,41 +46,8 @@ void Application::run()
 {
     PS_LOG("App starts running.");
 
-    const float vertices[] = {
-        -1.0f, 1.0f,
-        1.0f, 1.0f,
-        1.0f, -1.0f,
-        -1.0f, -1.0f
-    };
-    const unsigned int indecies[] = {
-        0, 1, 2,
-        2, 3, 0
-    };
-
-    std::string vertexShaderPath = Core::PROJECT_ABS_PATH + "res/Shaders/circle.vert.glsl";
-    std::string fragmentShaderPath = Core::PROJECT_ABS_PATH + "res/Shaders/circle.frag.glsl";
-    auto circleShader = std::make_shared<Shader>(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
-
-    BufferLayout layoutVertices2D;
-    layoutVertices2D.add<float>(2);
-
-    auto va = std::make_shared<VertexArray>();
-    VertexBuffer vb = VertexBuffer(sizeof(float) * 8, vertices);
-    ElementBuffer eb = ElementBuffer(6, indecies);
-    va->assignData(vb, eb, layoutVertices2D);
-
-    ParticleRenderer renderer = ParticleRenderer(circleShader, va);
     Particle asd = Particle();
-
-    /*Particle particles[500];
-    for (size_t i = 0; i < 500; i++)
-    {
-        particles[i] = Particle(
-            glm::vec2(float(pow(-1, rand()) * rand()) / RAND_MAX, float(pow(-1, rand()) * rand()) / RAND_MAX),
-            glm::vec2(0.0f, 0.0f),
-            0.025f
-        );
-    }*/
+    auto& renderer = ParticleRenderer::getInstance();
 
     PS_LOG("Entering the game loop");
     while (m_isRunning)
@@ -90,12 +57,6 @@ void Application::run()
         float sin = std::sin(glfwGetTime());
         asd.setPosition(glm::vec2(sin, sin));
         renderer.render(asd);
-
-        /*for (size_t i = 0; i < 500; i++)
-        {
-            particles[i].setPosition(glm::vec2(float(pow(-1, rand()) * rand()) / RAND_MAX, float(pow(-1, rand()) * rand()) / RAND_MAX));
-            renderer.render(particles[i]);
-        }*/
 
         m_window->onUpdate();
     }

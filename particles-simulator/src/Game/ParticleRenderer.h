@@ -5,10 +5,24 @@
 class ParticleRenderer
 {
 public:
-    ParticleRenderer(std::shared_ptr<Shader> shader, std::shared_ptr<VertexArray> va);
+    static ParticleRenderer& getInstance();
+    ParticleRenderer(const ParticleRenderer&) = delete;
+    void operator=(const ParticleRenderer&) = delete;
+
     void render(const Particle& particle);
 
 private:
-    std::shared_ptr<Shader> m_shader;
-    std::shared_ptr<VertexArray> m_vertexArray;
+    ParticleRenderer();
+
+    static const std::string s_vertexShaderPath;
+    static const std::string s_fragmentShaderPath;
+    static const float s_vertices[8];
+    static const unsigned int s_indecies[6];
+
+    Shader m_shader;
+    VertexBuffer m_vertexBuffer;
+    ElementBuffer m_elementBuffer;
+    BufferLayout m_bufferLayout;
+    VertexArray m_vertexArray;
+
 };

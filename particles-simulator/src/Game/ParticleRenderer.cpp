@@ -1,9 +1,35 @@
 #include "pch.h"
 #include "ParticleRenderer.h"
 
-ParticleRenderer::ParticleRenderer(std::shared_ptr<Shader> shader, std::shared_ptr<VertexArray> va)
-    : m_shader(shader), m_vertexArray(va)
-{}
+const std::string ParticleRenderer::s_vertexShaderPath = Core::PROJECT_ABS_PATH + "res/Shaders/circle.vert.glsl";
+const std::string ParticleRenderer::s_fragmentShaderPath = Core::PROJECT_ABS_PATH + "res/Shaders/circle.frag.glsl";
+
+const float ParticleRenderer::s_vertices[8] = {
+        -1.0f, 1.0f,
+        1.0f, 1.0f,
+        1.0f, -1.0f,
+        -1.0f, -1.0f
+};
+
+const unsigned int ParticleRenderer::s_indecies[6] = {
+    0, 1, 2,
+    2, 3, 0
+};
+
+ParticleRenderer& ParticleRenderer::getInstance()
+{
+    static ParticleRenderer instance;
+    return instance;
+}
+
+ParticleRenderer::ParticleRenderer()
+    : m_shader(ParticleRenderer::s_vertexShaderPath.c_str(), ParticleRenderer::s_fragmentShaderPath.c_str()),
+    m_vertexBuffer(sizeof(float) * 8, ParticleRenderer::s_vertices),
+    m_elementBuffer(6, ParticleRenderer::s_indecies)
+{
+    m_bufferLayout.add<float>(2);
+    m_vertexArray.assignData(m_vertexBuffer, m_elementBuffer, m_bufferLayout);
+}
 
 void ParticleRenderer::render(const Particle& particle)
 {
@@ -15,8 +41,8 @@ void ParticleRenderer::render(const Particle& particle)
     transformMatrix = glm::scale(glm::vec3(r, r, 1.0f ));
     transformMatrix = glm::translate(transformMatrix, glm::vec3(x * (1.0f / r), y * (1.0f / r), 1.0f));
 
-    m_shader->setUniform("u_transformation", transformMatrix);
-    m_shader->setUniform("u_radius", particle.getRadius());
-    m_shader->setUniform("u_center", particle.getPosition());
+    m_shader.setUniform("u_transformation", transformMatrix);
+    m_shader.setUniform("u_radius", particle.getRadius());
+    m_shader.setUniform("u_center", particle.getPosition());
     Renderer::draw(m_vertexArray, m_shader);
 }
