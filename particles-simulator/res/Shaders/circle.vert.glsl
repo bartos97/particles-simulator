@@ -8,6 +8,5 @@ uniform mat4 u_transformation;
 
 void main()
 {
-//    interpolatedVertexPosition = a_position;
     gl_Position = interpolatedVertexPosition = u_transformation * vec4(a_position.x, a_position.y, 0.0, 1.0);
 }

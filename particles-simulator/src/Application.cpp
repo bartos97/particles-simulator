@@ -46,17 +46,24 @@ void Application::run()
 {
     PS_LOG("App starts running.");
 
-    Particle asd = Particle();
     auto& renderer = ParticleRenderer::getInstance();
+    Particle asd = Particle();
+    Particle asd2 = Particle();
 
     PS_LOG("Entering the game loop");
     while (m_isRunning)
     {
         Renderer::clearScreen();
 
-        float sin = std::sin(glfwGetTime());
-        asd.setPosition(glm::vec2(sin, sin));
+        float time = glfwGetTime();
+        Timestep timestep = time - m_lastFrameTime;
+        m_lastFrameTime = time;
+
+        float sin = std::sin(time);
+        asd.setPosition(sin, sin);
+        asd2.setPosition(-sin, sin);
         renderer.render(asd);
+        renderer.render(asd2);
 
         m_window->onUpdate();
     }
@@ -141,8 +148,7 @@ void Application::onMouseMove(MouseMoveEvent & e)
     mouseX = mouseX / m_window->m_data.windowCenterX;
     mouseY = mouseY / m_window->m_data.windowCenterY;
 
-    this->mousePosition.x = float(mouseX);
-    this->mousePosition.y = float(mouseY);
+    ParticleRenderer::getInstance().setMousePosition(mouseX, mouseY);
 
     e.m_isHandled = true;
 }

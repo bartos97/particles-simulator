@@ -18,6 +18,12 @@ void Particle::setPosition(const glm::vec2& position)
     m_position = position;
 }
 
+void Particle::setPosition(float x, float y)
+{
+    m_position.x = x;
+    m_position.y = y;
+}
+
 void Particle::setSpeed(const glm::vec2& speed)
 {
     m_speed = speed;

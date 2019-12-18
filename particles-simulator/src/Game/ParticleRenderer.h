@@ -10,6 +10,7 @@ public:
     void operator=(const ParticleRenderer&) = delete;
 
     void render(const Particle& particle);
+    void setMousePosition(float x, float y);
 
 private:
     ParticleRenderer();
@@ -25,4 +26,5 @@ private:
     BufferLayout m_bufferLayout;
     VertexArray m_vertexArray;
 
+    glm::vec2 m_mousePosition = { 0.0f, 0.0f };
 };

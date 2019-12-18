@@ -5,10 +5,10 @@ const std::string ParticleRenderer::s_vertexShaderPath = Core::PROJECT_ABS_PATH 
 const std::string ParticleRenderer::s_fragmentShaderPath = Core::PROJECT_ABS_PATH + "res/Shaders/circle.frag.glsl";
 
 const float ParticleRenderer::s_vertices[8] = {
-        -1.0f, 1.0f,
-        1.0f, 1.0f,
-        1.0f, -1.0f,
-        -1.0f, -1.0f
+    -1.0f,  1.0f,
+     1.0f,  1.0f,
+     1.0f, -1.0f,
+    -1.0f, -1.0f
 };
 
 const unsigned int ParticleRenderer::s_indecies[6] = {
@@ -44,5 +44,12 @@ void ParticleRenderer::render(const Particle& particle)
     m_shader.setUniform("u_transformation", transformMatrix);
     m_shader.setUniform("u_radius", particle.getRadius());
     m_shader.setUniform("u_center", particle.getPosition());
+    m_shader.setUniform("u_mousePosition", this->m_mousePosition);
     Renderer::draw(m_vertexArray, m_shader);
+}
+
+void ParticleRenderer::setMousePosition(float x, float y)
+{
+    this->m_mousePosition.x = x;
+    this->m_mousePosition.y = y;
 }

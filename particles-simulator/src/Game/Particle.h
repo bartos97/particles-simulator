@@ -11,6 +11,7 @@ public:
     const glm::vec2& getSpeed() const { return m_speed; }
 
     void setPosition(const glm::vec2& position);
+    void setPosition(float x, float y);
     void setSpeed(const glm::vec2& speed);
     void setRadius(float radius);
 
