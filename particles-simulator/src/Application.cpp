@@ -47,8 +47,10 @@ void Application::run()
     PS_LOG("App starts running.");
 
     auto& renderer = ParticleRenderer::getInstance();
-    Particle asd = Particle();
-    Particle asd2 = Particle();
+    Particle asd = Particle(glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 0.0f), 0.25f);
+    Particle asd2 = Particle(glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 0.0f), 0.25f);
+    Particle asd3 = Particle(glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 0.0f), 0.25f);
+    Particle asd4 = Particle(glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 0.0f), 0.25f);
 
     PS_LOG("Entering the game loop");
     while (m_isRunning)
@@ -60,10 +62,15 @@ void Application::run()
         m_lastFrameTime = time;
 
         float sin = std::sin(time);
+        float cos = std::cos(time);
         asd.setPosition(sin, sin);
-        asd2.setPosition(-sin, sin);
+        asd2.setPosition(cos, cos);
+        asd3.setPosition(-sin, sin);
+        asd4.setPosition(-cos, cos);
         renderer.render(asd);
         renderer.render(asd2);
+        renderer.render(asd3);
+        renderer.render(asd4);
 
         m_window->onUpdate();
     }
