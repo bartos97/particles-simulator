@@ -46,5 +46,6 @@ private:
     static Application* m_instance;
     std::unique_ptr<Window> m_window;
     float m_lastFrameTime = 0.0f;
+    bool m_isMoving;
 };
 

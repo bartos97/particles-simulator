@@ -27,6 +27,7 @@ Application::Application()
     Renderer::setMode(GL_FILL);
 
     m_isRunning = true;
+    m_isMoving = false;
 }
 
 Application::~Application()
@@ -46,31 +47,18 @@ void Application::run()
 {
     PS_LOG("App starts running.");
 
-    auto& renderer = ParticleRenderer::getInstance();
-    Particle asd = Particle(glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 0.0f), 0.25f);
-    Particle asd2 = Particle(glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 0.0f), 0.25f);
-    Particle asd3 = Particle(glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 0.0f), 0.25f);
-    Particle asd4 = Particle(glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 0.0f), 0.25f);
+    auto manager = ParticleManager(80);
 
     PS_LOG("Entering the game loop");
     while (m_isRunning)
     {
         Renderer::clearScreen();
 
-        float time = glfwGetTime();
+        float time = float(glfwGetTime());
         Timestep timestep = time - m_lastFrameTime;
         m_lastFrameTime = time;
 
-        float sin = std::sin(time);
-        float cos = std::cos(time);
-        asd.setPosition(sin, sin);
-        asd2.setPosition(cos, cos);
-        asd3.setPosition(-sin, sin);
-        asd4.setPosition(-cos, cos);
-        renderer.render(asd);
-        renderer.render(asd2);
-        renderer.render(asd3);
-        renderer.render(asd4);
+        manager.onUpdate(timestep, m_isMoving);
 
         m_window->onUpdate();
     }
@@ -112,14 +100,10 @@ void Application::onKeyPress(KeyPressEvent & e)
             m_isRunning = false;
             break;
         }
-        //case GLFW_KEY_UP:
-        //{
-        //    break;
-        //}
-        //case GLFW_KEY_DOWN:
-        //{
-        //    break;
-        //}
+        case GLFW_KEY_P:
+        {
+            m_isMoving = !m_isMoving;
+        }
     }
 
     e.m_isHandled = true;
@@ -143,7 +127,7 @@ void Application::onKeyRelease(KeyReleaseEvent & e)
 
 void Application::onMouseMove(MouseMoveEvent & e)
 {
-    PS_EVENT_LOG(e, "Mouse move at x:%lf y:%lf", e.getX(), e.getY());
+    //PS_EVENT_LOG(e, "Mouse move at x:%lf y:%lf", e.getX(), e.getY());
 
     // mouse position received from event are in coordinates system
     // where origin is at window's top left corner, so
@@ -155,7 +139,7 @@ void Application::onMouseMove(MouseMoveEvent & e)
     mouseX = mouseX / m_window->m_data.windowCenterX;
     mouseY = mouseY / m_window->m_data.windowCenterY;
 
-    ParticleRenderer::getInstance().setMousePosition(mouseX, mouseY);
+    ParticleRenderer::getInstance().setMousePosition(float(mouseX), float(mouseY));
 
     e.m_isHandled = true;
 }

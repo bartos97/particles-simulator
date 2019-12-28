@@ -44,6 +44,7 @@ void ParticleRenderer::render(const Particle& particle)
     m_shader.setUniform("u_transformation", transformMatrix);
     m_shader.setUniform("u_radius", particle.getRadius());
     m_shader.setUniform("u_center", particle.getPosition());
+    m_shader.setUniform("u_color", particle.getColor());
     m_shader.setUniform("u_mousePosition", this->m_mousePosition);
     Renderer::draw(m_vertexArray, m_shader);
 }
