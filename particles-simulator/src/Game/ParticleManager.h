@@ -13,22 +13,54 @@ public:
 
     ParticleManager(size_t particlesCount);
     ParticleManager();
-    void onUpdate(Timestep timestep, bool isMoving);
-    //void start();
-    //void stop();
+    void onUpdate(Timestep timestep);
+
+    void onMousePress()
+    {
+        m_isClicked = true;
+    }
+
+    void onMouseRelease()
+    {
+        m_isClicked = false;
+    }
+
+    void onMouseMove(float mousePosX, float mousePosY)
+    {
+        m_mousePosX = mousePosX;
+        m_mousePosY = mousePosY;
+    }
+
+    void startSimulation()
+    {
+        m_isRunning = true;
+    }
+
+    void stopSimulation()
+    {
+        m_isRunning = false;
+    }
+
+    void toggleSimulation()
+    {
+        m_isRunning = !m_isRunning;
+    }
 
 private:
     void collisionCheck(Timestep timestep);
     void checkCollisionAgainstWalls(Particle& particle);
-    bool isInsideAnyParticle(const glm::vec2& position, float radius);
-    Particle* willBeInsideAnyParticle(const Particle& particle, Timestep timestep);
+    bool overlapsWithAnyParticle(const glm::vec2& position, float radius);
     bool isOutisdeMap(const glm::vec2& position, float radius);
     bool isOutisdeMap(const Particle& particle);
     bool collisionHappened(const CollisionPair& collicurrentCollision);
 
 private:
-    float timestep;
     std::vector<Particle> m_particles;
     std::vector<CollisionPair> m_collisionsBuffer;
+    float timestep = 0.0f;
+    bool m_isRunning = false;
+    bool m_isClicked = false;
+    float m_mousePosX = 0.0f;
+    float m_mousePosY = 0.0f;
 };
 

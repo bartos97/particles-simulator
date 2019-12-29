@@ -2,56 +2,94 @@
 #include "ParticleManager.h"
 
 ParticleManager::ParticleManager(size_t particlesCount)
-    : timestep(0.0f)
 {
-    std::random_device rd;
-    auto randEngine = std::default_random_engine(rd());
-    auto distribPos = std::uniform_real_distribution<float>(-1.0f, 1.0f);
-    auto distribSpeed = std::uniform_real_distribution<float>(-0.25f, 0.25f);
-    auto distribRadius = std::uniform_real_distribution<float>(0.05f, 0.25f);
+    static const size_t MAX_ATTEMPTS = 10000;
 
     m_particles.reserve(particlesCount);
     m_collisionsBuffer.reserve(particlesCount * (particlesCount - 1));
+
+    std::random_device rd;
+    auto randEngine = std::default_random_engine(rd());
+    auto distribPos = std::uniform_real_distribution<float>(-1.0f, 1.0f);
+    auto distribSpeed = std::uniform_real_distribution<float>(-0.5f, 0.5f);
+    auto distribRadius = std::uniform_real_distribution<float>(0.025f, 0.2f);
+
 
     for (size_t i = 0; i < particlesCount; i++)
     {
         glm::vec2 speed = glm::vec2(distribSpeed(randEngine), distribSpeed(randEngine));
         glm::vec2 pos;
         float radius;
+        size_t attemptsCounter = 0;
 
         do
         {
             pos = glm::vec2(distribPos(randEngine), distribPos(randEngine));
             radius = distribRadius(randEngine);
+            attemptsCounter++;
         }
-        while (isInsideAnyParticle(pos, radius) || isOutisdeMap(pos, radius));
+        while (attemptsCounter < MAX_ATTEMPTS && (overlapsWithAnyParticle(pos, radius) || isOutisdeMap(pos, radius)));
 
-        glm::vec4 color = glm::vec4((std::abs(speed.x) + std::abs(speed.y)) / 3.0f, std::abs(pos.x), std::abs(pos.y), 1.0f);
-        m_particles.emplace_back(pos, speed, radius, color);
+        if (attemptsCounter >= MAX_ATTEMPTS)
+        {
+            PS_INFO("Can't find place for more particles, only %llu will be made", i + 1);
+            return;
+        }
+        else
+        {
+            glm::vec4 color = glm::vec4(std::abs(speed.x) + std::abs(speed.y), std::abs(pos.x), std::abs(pos.y), 1.0f);
+            m_particles.emplace_back(pos, speed, radius, color);
+        }
     }
 }
 
 ParticleManager::ParticleManager()
-    : timestep(0.0f)
 {
     //for tests
-    size_t particlesCount = 3;
+    size_t particlesCount = 2;
     m_particles.reserve(particlesCount);
     m_collisionsBuffer.reserve(particlesCount * (particlesCount - 1));
 
-    m_particles.emplace_back(glm::vec2(0.5f, -0.5f), glm::vec2(-0.1f, 0.1f), 0.49f, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-    m_particles.emplace_back(glm::vec2(-0.5f, -0.5f), glm::vec2(0.1f, 0.1f), 0.49f, glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
-    m_particles.emplace_back(glm::vec2(0.0f, 0.4f), glm::vec2(0.0f, -0.2f), 0.52f, glm::vec4(1.0f, 0.2f, 0.2f, 1.0f));
+    m_particles.emplace_back(glm::vec2(-0.5f, 0.5f), glm::vec2(0.1f, -0.1f), 0.1f, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    //m_particles.emplace_back(glm::vec2(0.5f, 0.5f), glm::vec2(-0.25f, -0.25f), 0.1f, glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
+    m_particles.emplace_back(glm::vec2(0.5f, -0.5f), glm::vec2(-0.1f, 0.1f), 0.5f, glm::vec4(0.4f, 0.4f, 0.4f, 1.0f));
+    //m_particles.emplace_back(glm::vec2(-0.5f, -0.5f), glm::vec2(0.1f, 0.1f), 0.49f, glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
 }
 
-void ParticleManager::onUpdate(Timestep timestep, bool isMoving)
+void ParticleManager::onUpdate(Timestep timestep)
 {
-    auto& renderer = ParticleRenderer::getInstance();
-    if (isMoving) collisionCheck(timestep);
+#ifdef PS_DEBUG
+    static int clickedParticle;
+    if (m_isClicked)
+    {
+        for (auto& particle : m_particles)
+        {
+            int ID = particle.getID();
+            if (clickedParticle == -1 && particle.isInside(m_mousePosX, m_mousePosY))
+            {
+                clickedParticle = ID;
+                particle.setPosition(m_mousePosX, m_mousePosY);
+                break;
+            }
+            else if (clickedParticle == ID)
+            {
+                particle.setPosition(m_mousePosX, m_mousePosY);
+            }
+        }
+    }
+    else clickedParticle = -1;
+#endif // PS_DEBUG
 
     for (auto& particle : m_particles)
     {
-        if (isMoving) particle.onUpdate(timestep);
+        particle.onUpdate(timestep, m_isRunning);
+    }
+    
+    if (m_isRunning) collisionCheck(timestep);
+
+    auto& renderer = ParticleRenderer::getInstance();
+    for (auto& particle : m_particles)
+    {
         renderer.render(particle);
     }
 }
@@ -60,20 +98,20 @@ void ParticleManager::collisionCheck(Timestep timestep)
 {
     m_collisionsBuffer.clear();
 
-    //detect collisions
+    //detect collisions and displace particles so they don't overlap
     for (auto& particle : m_particles)
     {
         checkCollisionAgainstWalls(particle);
         const auto particleID = particle.getID();
-        const auto pos = particle.getPositionInNextFrame(timestep);
+        const auto& pos = particle.getPosition();
 
         for (auto& otherParticle : m_particles)
         {
             const auto otherParticleID = otherParticle.getID();
             if (particleID == otherParticleID) continue;
 
-            const auto otherPos = otherParticle.getPositionInNextFrame(timestep);
-            const float distanceBetweenCenters = glm::distance(pos, otherPos) - 0.005f;
+            const auto& otherPos = otherParticle.getPosition();
+            const float distanceBetweenCenters = glm::distance(pos, otherPos);
             const float radiusSum = particle.getRadius() + otherParticle.getRadius();
 
             if (distanceBetweenCenters <= radiusSum)
@@ -81,16 +119,47 @@ void ParticleManager::collisionCheck(Timestep timestep)
                 CollisionPair currentCollision = particleID > otherParticleID ?
                     CollisionPair(otherParticle, particle) :
                     CollisionPair(particle, otherParticle);
-
                 if (collisionHappened(currentCollision)) continue;
                 m_collisionsBuffer.push_back(currentCollision);
+
+                float overlap = 0.5f * (radiusSum - distanceBetweenCenters);
+                glm::vec2 displacement = pos - otherPos;
+                displacement = overlap * displacement / distanceBetweenCenters;
+                
+                particle.setPosition(pos + displacement);
+                otherParticle.setPosition(otherPos - displacement);
             }
         }
     }
 
+    //resolve collisions
     for (const auto& collision : m_collisionsBuffer)
     {
-        collision.first.onCollision(collision.second, m_particles, timestep);
+        auto& first = collision.first;
+        auto& second = collision.second;
+
+        float firstMass = first.getMass();
+        float secondMass = second.getMass();
+        float massesSum =  firstMass + secondMass;
+        const glm::vec2& firstSpeed = first.getSpeed();
+        const glm::vec2& secondSpeed = second.getSpeed();
+
+        const glm::vec2 normal = glm::normalize(first.getPosition() - second.getPosition());
+        const glm::vec2 tangent = glm::vec2(-normal.y, normal.x);
+
+        float firstTangentDot = glm::dot(firstSpeed, tangent);
+        float secondTangentDot = glm::dot(secondSpeed, tangent);
+        float firstNormalDot = glm::dot(firstSpeed, normal);
+        float secondNormalDot = glm::dot(secondSpeed, normal);
+
+        // Conservation of momentum in 1D
+        float firstMomentum = ((firstMass - secondMass) * firstNormalDot + 2.0f * secondMass * secondNormalDot) / massesSum;
+        float secondMomentum = (2.0f * firstMass * firstNormalDot + (secondMass - firstMass) * secondNormalDot) / massesSum;
+
+        first.setSpeed(tangent * firstTangentDot + normal * firstMomentum);
+        second.setSpeed(tangent * secondTangentDot + normal * secondMomentum);
+        first.onCollision();
+        second.onCollision();
     }
 }
 
@@ -118,26 +187,14 @@ void ParticleManager::checkCollisionAgainstWalls(Particle& particle)
     }
 }
 
-bool ParticleManager::isInsideAnyParticle(const glm::vec2& position, float radius)
+bool ParticleManager::overlapsWithAnyParticle(const glm::vec2& position, float radius)
 {
     for (const auto& particle : m_particles)
     {
-        if (glm::distance(position, particle.getPosition()) - radius <= particle.getRadius() + 0.005f)
+        if (glm::distance(position, particle.getPosition()) - radius <= particle.getRadius())
             return true;
     }
     return false;
-}
-
-Particle* ParticleManager::willBeInsideAnyParticle(const Particle& particle, Timestep timestep)
-{
-    glm::vec2 position = particle.getPositionInNextFrame(timestep);
-    float radius = particle.getRadius();
-    for (auto& p : m_particles)
-    {
-        if (p.getID() == particle.getID()) continue;
-        if (glm::distance(position, p.getPositionInNextFrame(timestep)) - radius <= p.getRadius()) return &p;
-    }
-    return nullptr;
 }
 
 bool ParticleManager::isOutisdeMap(const glm::vec2& position, float radius)
@@ -155,6 +212,8 @@ bool ParticleManager::isOutisdeMap(const Particle& particle)
 bool ParticleManager::collisionHappened(const CollisionPair& collicurrentCollision)
 {
     for (const auto& collision : m_collisionsBuffer)
+    {
         if (collision == collicurrentCollision) return true;
+    }        
     return false;
 }

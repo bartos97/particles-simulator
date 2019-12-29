@@ -1,11 +1,13 @@
 #pragma once
 #include "Timestep.h"
 #include <sstream>
-#include <limits>
 
 class Particle
 {
 public:
+    static const float COLLISION_COLOR_ANIMATION_TIME;
+    static const glm::vec4 COLLISION_COLOR;
+
     Particle(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
              const glm::vec2& speed = glm::vec2(0.0f, 0.0f),
              float radius = 0.05f,
@@ -24,6 +26,16 @@ public:
     float getRadius() const
     {
         return m_radius;
+    }
+
+    float getArea() const
+    {
+        return m_area;
+    }
+
+    float getMass() const
+    {
+        return m_area;
     }
 
     const glm::vec2& getPosition() const
@@ -72,7 +84,9 @@ public:
 
     void setRadius(float radius)
     {
+        if (radius < 0.025f) return;
         m_radius = radius;
+        m_area = float(M_PI * m_radius * m_radius);
     }
 
     void setPosition(const glm::vec2& position)
@@ -91,26 +105,32 @@ public:
         m_color = m_defaultColor;
     }
 
+    bool isInside(const glm::vec2& position)
+    {
+        return glm::distance(m_position, position) <= m_radius;
+    }
+
+    bool isInside(float x, float y)
+    {
+        float distance = sqrtf((x - m_position.x) * (x - m_position.x) + (y - m_position.y) * (y - m_position.y));
+        return distance <= m_radius;
+    }
+
     std::string getDescription() const;
-    void setSpeedWithCollisionCheck(const glm::vec2& speed, std::vector<Particle>& particles, Particle& collisionOriginator, Timestep ts);
-    void onUpdate(Timestep ts);
-    void onCollision(Particle& collisionOriginator, std::vector<Particle>& allOtherParticles, Timestep ts);
+    void onUpdate(Timestep ts, bool updatePosition);
+    void onCollision();    
 
 private:
     void updateColor(Timestep ts);
-
-public:
-    static const float COLLISION_COLOR_ANIMATION_TIME;
-    static const glm::vec4 COLLISION_COLOR;
-    float m_area;
 
 private:
     unsigned int m_ID;
     glm::vec2 m_position;
     glm::vec2 m_speed; //units per second
     float m_radius;
+    float m_area;
     glm::vec4 m_color;
     const glm::vec4 m_defaultColor;
     const glm::vec4 m_collisionColorComplement;
-    float m_timeSinceCollision = std::numeric_limits<float>::max();
+    float m_timeSinceCollision = Particle::COLLISION_COLOR_ANIMATION_TIME + 1e-5f;
 };

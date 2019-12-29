@@ -9,8 +9,13 @@ Application* Application::m_instance;
 
 Application::Application()
 {
+    //TODO: get command line arguments
     PS_LOG("Application constructed.");
     m_window = std::unique_ptr<Window>(Window::getInstance());
+    Renderer::setMode(GL_FILL);
+
+    m_isRunning = true;
+    m_manager = ParticleManager(50);
 
     APP_BIND_EVENT(WindowClose);
     APP_BIND_EVENT(WindowResize);
@@ -19,15 +24,6 @@ Application::Application()
     APP_BIND_EVENT(MouseMove);
     APP_BIND_EVENT(MouseButtonPress);
     APP_BIND_EVENT(MouseButtonRelease);
-
-    //Renderer::setMode(GL_LINE);
-#ifdef PS_DEBUG
-#else
-#endif // PS_DEBUG
-    Renderer::setMode(GL_FILL);
-
-    m_isRunning = true;
-    m_isMoving = false;
 }
 
 Application::~Application()
@@ -47,8 +43,6 @@ void Application::run()
 {
     PS_LOG("App starts running.");
 
-    auto manager = ParticleManager(80);
-
     PS_LOG("Entering the game loop");
     while (m_isRunning)
     {
@@ -58,7 +52,7 @@ void Application::run()
         Timestep timestep = time - m_lastFrameTime;
         m_lastFrameTime = time;
 
-        manager.onUpdate(timestep, m_isMoving);
+        m_manager.onUpdate(timestep);
 
         m_window->onUpdate();
     }
@@ -102,7 +96,7 @@ void Application::onKeyPress(KeyPressEvent & e)
         }
         case GLFW_KEY_P:
         {
-            m_isMoving = !m_isMoving;
+            m_manager.toggleSimulation();
         }
     }
 
@@ -132,14 +126,15 @@ void Application::onMouseMove(MouseMoveEvent & e)
     // mouse position received from event are in coordinates system
     // where origin is at window's top left corner, so
     // position (in px) with respect to center of window wiil be:
-    double mouseY = m_window->m_data.windowCenterY - e.getY();
-    double mouseX = e.getX() - m_window->m_data.windowCenterX;
+    m_mousePosY = float(m_window->m_data.windowCenterY - e.getY());
+    m_mousePosX = float(e.getX() - m_window->m_data.windowCenterX);
 
     //x and y in normalized device coordinates, i.e. [-1, 1]
-    mouseX = mouseX / m_window->m_data.windowCenterX;
-    mouseY = mouseY / m_window->m_data.windowCenterY;
+    m_mousePosX = float(m_mousePosX / m_window->m_data.windowCenterX);
+    m_mousePosY = float(m_mousePosY / m_window->m_data.windowCenterY);
 
-    ParticleRenderer::getInstance().setMousePosition(float(mouseX), float(mouseY));
+    ParticleRenderer::getInstance().setMousePosition(m_mousePosX, m_mousePosY);
+    m_manager.onMouseMove(m_mousePosX, m_mousePosY);
 
     e.m_isHandled = true;
 }
@@ -148,6 +143,10 @@ void Application::onMouseMove(MouseMoveEvent & e)
 void Application::onMouseButtonPress(MouseButtonPressEvent & e)
 {
     PS_EVENT_LOG(e, "Mouse button #%d pressed", e.getButton());
+    if (e.getButton() == 0)
+    {
+        m_manager.onMousePress();
+    }
     e.m_isHandled = true;
 }
 
@@ -155,5 +154,9 @@ void Application::onMouseButtonPress(MouseButtonPressEvent & e)
 void Application::onMouseButtonRelease(MouseButtonReleaseEvent & e)
 {
     PS_EVENT_LOG(e, "Mouse button #%d released", e.getButton());
+    if (e.getButton() == 0)
+    {
+        m_manager.onMouseRelease();
+    }
     e.m_isHandled = true;
 }

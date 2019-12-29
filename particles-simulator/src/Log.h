@@ -28,6 +28,12 @@
     #define GL_CALL(func) func
 #endif // PS_ENABLE_LOG
 
+#define PS_INFO(...) \
+{ \
+    printf(__VA_ARGS__); \
+    putchar('\n'); \
+}
+
 
 #ifdef PS_ENABLE_ASSERT
     #ifdef PS_SYSTEM_WINDOWS

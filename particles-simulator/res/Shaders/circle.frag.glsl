@@ -19,13 +19,14 @@ void main()
     float mouseDist = (twoSqrt2 - distance(vert, u_mousePosition) * 0.8) / twoSqrt2;
     mouseDist = sqrt(mouseDist);
 
-    float centerDist = (u_radius - pixelDist * 0.6) / u_radius;
+    float centerDist = (u_radius - pixelDist * 0.55) / u_radius;
     centerDist = clamp(centerDist * centerDist, 0.0f, 1.0f);
 
-    float centerDist2 = (u_radius - pixelDist * 0.8) / u_radius;
+    float centerDist2 = (u_radius - pixelDist * 0.75) / u_radius;
     centerDist2 = clamp(sqrt(centerDist2), 0.0f, 1.0f);
 
     vec4 toWhiteComplement = vec4(0.8f, 0.8f, 0.8f, 1.0f) - u_color;
 
     fragmentColor = (u_color + toWhiteComplement * centerDist) * centerDist2 * mouseDist;
+//    fragmentColor = u_color;
 }

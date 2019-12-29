@@ -46,6 +46,9 @@ private:
     static Application* m_instance;
     std::unique_ptr<Window> m_window;
     float m_lastFrameTime = 0.0f;
-    bool m_isMoving;
+    float m_mousePosX = 0.0f;
+    float m_mousePosY = 0.0f;
+
+    ParticleManager m_manager;
 };
 
