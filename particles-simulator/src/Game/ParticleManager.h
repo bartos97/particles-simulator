@@ -3,16 +3,16 @@
 #include "Timestep.h"
 #include "ParticleRenderer.h"
 #include <random>
-#include <cmath>
-
+#include "ApplicationModels.h"
 
 class ParticleManager
 {
 public:
     using CollisionPair = std::pair<Particle&, Particle&>;
 
-    ParticleManager(size_t particlesCount);
-    ParticleManager();
+    ParticleManager(const AppConfig& config);
+    ParticleManager() = default;
+
     void onUpdate(Timestep timestep);
 
     void onMousePress()
@@ -62,5 +62,6 @@ private:
     bool m_isClicked = false;
     float m_mousePosX = 0.0f;
     float m_mousePosY = 0.0f;
+    std::string m_stateFilePath;
 };
 

@@ -4,18 +4,19 @@
 #include <random>
 #include <cmath>
 
-// Declaration of static variable
-Application* Application::m_instance;
-
-Application::Application()
+Application::Application(int argc, char* argv[])
 {
-    //TODO: get command line arguments
     PS_LOG("Application constructed.");
-    m_window = std::unique_ptr<Window>(Window::getInstance());
-    Renderer::setMode(GL_FILL);
 
+    bool optionsValid = parseOptions(argc, argv);
+    if (!optionsValid)
+    {
+        PS_INFO("No options passed or none is valid; using default ones");
+    }
+
+    m_window = std::unique_ptr<Window>(Window::getInstance());
     m_isRunning = true;
-    m_manager = ParticleManager(50);
+    m_manager = ParticleManager(m_config);
 
     APP_BIND_EVENT(WindowClose);
     APP_BIND_EVENT(WindowResize);
@@ -30,14 +31,6 @@ Application::~Application()
 {
     PS_LOG("Application destroyed.");
 }
-
-
-Application * Application::getInstance()
-{
-    if (!m_instance) m_instance = new Application();
-    return m_instance;
-}
-
 
 void Application::run()
 {
@@ -59,6 +52,50 @@ void Application::run()
     PS_LOG("Returned from game loop");
 }
 
+
+bool Application::parseOptions(int argc, char* argv[])
+{
+    if (argc <= 2) return false;
+
+    static const AppExecParam num = {
+        "--num",
+        [&](const char* param)->bool {
+            size_t num = std::atoll(param);
+            if (num > 0)
+            {
+                m_config.num = num;
+                return true;
+            }
+            return false;
+        }
+    };
+
+    static const AppExecParam path = {
+        "--path",
+        [&](const char* param)->bool {
+            m_config.path = Core::PROJECT_ABS_PATH + std::string(param);
+            return true;
+        }
+    };
+
+    static const std::array<const AppExecParam, 2> options = { num, path };
+    
+    bool anyValidOption = false;
+    for (int i = 1; i < argc; i++)
+    {
+        for (auto& option : options)
+        {
+            if (std::strcmp(argv[i], option.key) == 0 && i < argc - 1)
+            {
+                anyValidOption = option.callback(argv[i + 1]);
+                i++;
+                break;
+            }
+        }
+    }
+
+    return anyValidOption;
+}
 
 void Application::onWindowClose(WindowCloseEvent & e)
 {

@@ -1,12 +1,11 @@
 #include "pch.h"
 #include "ParticleManager.h"
 
-ParticleManager::ParticleManager(size_t particlesCount)
+ParticleManager::ParticleManager(const AppConfig& config)
 {
-    static const size_t MAX_ATTEMPTS = 10000;
-
-    m_particles.reserve(particlesCount);
-    m_collisionsBuffer.reserve(particlesCount * (particlesCount - 1));
+    m_particles.reserve(config.num);
+    m_collisionsBuffer.reserve(config.num * (config.num - 1));
+    m_stateFilePath = config.path;
 
     std::random_device rd;
     auto randEngine = std::default_random_engine(rd());
@@ -15,7 +14,8 @@ ParticleManager::ParticleManager(size_t particlesCount)
     auto distribRadius = std::uniform_real_distribution<float>(0.025f, 0.2f);
 
 
-    for (size_t i = 0; i < particlesCount; i++)
+    static const size_t MAX_ATTEMPTS = 10000;
+    for (size_t i = 0; i < config.num; i++)
     {
         glm::vec2 speed = glm::vec2(distribSpeed(randEngine), distribSpeed(randEngine));
         glm::vec2 pos;
@@ -41,19 +41,6 @@ ParticleManager::ParticleManager(size_t particlesCount)
             m_particles.emplace_back(pos, speed, radius, color);
         }
     }
-}
-
-ParticleManager::ParticleManager()
-{
-    //for tests
-    size_t particlesCount = 2;
-    m_particles.reserve(particlesCount);
-    m_collisionsBuffer.reserve(particlesCount * (particlesCount - 1));
-
-    m_particles.emplace_back(glm::vec2(-0.5f, 0.5f), glm::vec2(0.1f, -0.1f), 0.1f, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-    //m_particles.emplace_back(glm::vec2(0.5f, 0.5f), glm::vec2(-0.25f, -0.25f), 0.1f, glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
-    m_particles.emplace_back(glm::vec2(0.5f, -0.5f), glm::vec2(-0.1f, 0.1f), 0.5f, glm::vec4(0.4f, 0.4f, 0.4f, 1.0f));
-    //m_particles.emplace_back(glm::vec2(-0.5f, -0.5f), glm::vec2(0.1f, 0.1f), 0.49f, glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
 }
 
 void ParticleManager::onUpdate(Timestep timestep)

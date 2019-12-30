@@ -7,26 +7,22 @@
 #include "OpenGL/Renderer.h"
 #include "Timestep.h"
 #include "Game/ParticleManager.h"
+#include "ApplicationModels.h"
+#include <array>
+#include <cstdlib>
 
 #define APP_BIND_EVENT(eventName) \
     m_window->m_data.callbackOn##eventName = std::bind(&Application::on##eventName, this, std::placeholders::_1)
 
+
 /**
- * Singleton. Base class for whole application.
+ * Base class for whole application.
  */
 class Application
 {
-private:
-    Application();
-
 public:
+    Application(int argc, char* argv[]);
     ~Application();
-
-    /**
-     * Object initialization function
-     * @return Pointer to (only) instance of this class
-     */
-    static Application* getInstance();
 
     /** 
      * Application's "main" function; contains game loop.
@@ -34,6 +30,8 @@ public:
     void run();
 
 private:
+    bool parseOptions(int argc, char* argv[]);
+
     void onWindowClose(WindowCloseEvent& e);
     void onWindowResize(WindowResizeEvent& e);
     void onKeyPress(KeyPressEvent& e);
@@ -43,12 +41,12 @@ private:
     void onMouseButtonRelease(MouseButtonReleaseEvent& e);
 
     bool m_isRunning;
-    static Application* m_instance;
     std::unique_ptr<Window> m_window;
     float m_lastFrameTime = 0.0f;
     float m_mousePosX = 0.0f;
     float m_mousePosY = 0.0f;
 
+    AppConfig m_config;
     ParticleManager m_manager;
 };
 
