@@ -35,7 +35,7 @@ void Particle::updateColor(Timestep ts)
         auto colorDelta = m_collisionColorComplement * (float(ts) / COLLISION_COLOR_ANIMATION_TIME / 0.5f);
         if (m_timeSinceCollision <= COLLISION_COLOR_ANIMATION_TIME / 2.0f)
         {
-            if (m_color.x < 1.0f) m_color += colorDelta;
+            if (m_color.x <= 1.0f) m_color += colorDelta;
         }
         else
         {

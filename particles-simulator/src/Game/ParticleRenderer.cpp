@@ -37,15 +37,14 @@ void ParticleRenderer::render(const Particle& particle)
     float x = particle.getPosition().x;
     float y = particle.getPosition().y;
 
-    glm::mat4 transformMatrix = glm::mat4(1.0f);
-    transformMatrix = glm::scale(glm::vec3(r, r, 1.0f ));
-    transformMatrix = glm::translate(transformMatrix, glm::vec3(x * (1.0f / r), y * (1.0f / r), 1.0f));
+    glm::mat4 transformMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, 1.0f));
+    transformMatrix = glm::scale(transformMatrix, glm::vec3(r, r, 1.0f ));
 
     m_shader.setUniform("u_transformation", transformMatrix);
     m_shader.setUniform("u_radius", particle.getRadius());
     m_shader.setUniform("u_center", particle.getPosition());
     m_shader.setUniform("u_color", particle.getColor());
-    m_shader.setUniform("u_mousePosition", this->m_mousePosition);
+    m_shader.setUniform("u_mousePosition", m_mousePosition);
     Renderer::draw(m_vertexArray, m_shader);
 }
 
