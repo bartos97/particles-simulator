@@ -1,0 +1,1 @@
+MSBuild particles-simulator.sln /p:Configuration=Release;Platform=x64 /v:m /nologo
