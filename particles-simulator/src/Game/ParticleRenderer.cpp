@@ -31,7 +31,7 @@ ParticleRenderer::ParticleRenderer()
     m_vertexArray.assignData(m_vertexBuffer, m_elementBuffer, m_bufferLayout);
 }
 
-void ParticleRenderer::render(const Particle& particle)
+void ParticleRenderer::render(const Particle& particle, const glm::vec2& mousePos)
 {
     float r = particle.getRadius();
     float x = particle.getPosition().x;
@@ -44,12 +44,6 @@ void ParticleRenderer::render(const Particle& particle)
     m_shader.setUniform("u_radius", particle.getRadius());
     m_shader.setUniform("u_center", particle.getPosition());
     m_shader.setUniform("u_color", particle.getColor());
-    m_shader.setUniform("u_mousePosition", m_mousePosition);
+    m_shader.setUniform("u_mousePosition", mousePos);
     Renderer::draw(m_vertexArray, m_shader);
-}
-
-void ParticleRenderer::setMousePosition(float x, float y)
-{
-    this->m_mousePosition.x = x;
-    this->m_mousePosition.y = y;
 }

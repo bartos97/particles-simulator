@@ -13,6 +13,10 @@ public:
              float radius = 0.05f,
              const glm::vec4& color = glm::vec4(0.2f, 0.5f, 0.6f, 1.0f));
 
+    std::string getDescription() const;
+    void onUpdate(Timestep ts, bool updatePosition);
+    void onCollision();
+
     bool operator==(const Particle& p) const
     {
         return p.getID() == m_ID;
@@ -112,13 +116,8 @@ public:
 
     bool isInside(float x, float y)
     {
-        float distance = sqrtf((x - m_position.x) * (x - m_position.x) + (y - m_position.y) * (y - m_position.y));
-        return distance <= m_radius;
-    }
-
-    std::string getDescription() const;
-    void onUpdate(Timestep ts, bool updatePosition);
-    void onCollision();    
+        return sqrtf((x - m_position.x) * (x - m_position.x) + (y - m_position.y) * (y - m_position.y)) <= m_radius;
+    }   
 
 private:
     void updateColor(Timestep ts);

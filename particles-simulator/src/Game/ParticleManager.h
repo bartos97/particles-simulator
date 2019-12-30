@@ -27,8 +27,8 @@ public:
 
     void onMouseMove(float mousePosX, float mousePosY)
     {
-        m_mousePosX = mousePosX;
-        m_mousePosY = mousePosY;
+        m_mousePosition.x = mousePosX;
+        m_mousePosition.y = mousePosY;
     }
 
     void startSimulation()
@@ -47,12 +47,16 @@ public:
     }
 
 private:
-    void collisionCheck(Timestep timestep);
+    void collisionCheck();
+    void detectCollisions();
+    void resolveCollisions();
     void checkCollisionAgainstWalls(Particle& particle);
     bool overlapsWithAnyParticle(const glm::vec2& position, float radius);
     bool isOutisdeMap(const glm::vec2& position, float radius);
     bool isOutisdeMap(const Particle& particle);
     bool collisionHappened(const CollisionPair& collicurrentCollision);
+
+    void dragParticle();
 
 private:
     std::vector<Particle> m_particles;
@@ -60,8 +64,7 @@ private:
     float timestep = 0.0f;
     bool m_isRunning = false;
     bool m_isClicked = false;
-    float m_mousePosX = 0.0f;
-    float m_mousePosY = 0.0f;
+    glm::vec2 m_mousePosition = { 0.0f, 0.0f };
     std::string m_stateFilePath;
 };
 

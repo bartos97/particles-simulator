@@ -46,42 +46,31 @@ ParticleManager::ParticleManager(const AppConfig& config)
 void ParticleManager::onUpdate(Timestep timestep)
 {
 #ifdef PS_DEBUG
-    static int clickedParticle;
-    if (m_isClicked)
-    {
-        for (auto& particle : m_particles)
-        {
-            int ID = particle.getID();
-            if (clickedParticle == -1 && particle.isInside(m_mousePosX, m_mousePosY))
-            {
-                clickedParticle = ID;
-                particle.setPosition(m_mousePosX, m_mousePosY);
-                break;
-            }
-            else if (clickedParticle == ID)
-            {
-                particle.setPosition(m_mousePosX, m_mousePosY);
-            }
-        }
-    }
-    else clickedParticle = -1;
+    dragParticle();
 #endif // PS_DEBUG
+    
+    static auto& renderer = ParticleRenderer::getInstance();
 
     for (auto& particle : m_particles)
     {
         particle.onUpdate(timestep, m_isRunning);
     }
     
-    if (m_isRunning) collisionCheck(timestep);
+    if (m_isRunning) collisionCheck();
 
-    auto& renderer = ParticleRenderer::getInstance();
     for (auto& particle : m_particles)
     {
-        renderer.render(particle);
+        renderer.render(particle, m_mousePosition);
     }
 }
 
-void ParticleManager::collisionCheck(Timestep timestep)
+void ParticleManager::collisionCheck()
+{
+    detectCollisions();
+    resolveCollisions();
+}
+
+void ParticleManager::detectCollisions()
 {
     m_collisionsBuffer.clear();
 
@@ -112,14 +101,16 @@ void ParticleManager::collisionCheck(Timestep timestep)
                 float overlap = 0.5f * (radiusSum - distanceBetweenCenters);
                 glm::vec2 displacement = pos - otherPos;
                 displacement = overlap * displacement / distanceBetweenCenters;
-                
+
                 particle.setPosition(pos + displacement);
                 otherParticle.setPosition(otherPos - displacement);
             }
         }
     }
+}
 
-    //resolve collisions
+void ParticleManager::resolveCollisions()
+{
     for (const auto& collision : m_collisionsBuffer)
     {
         auto& first = collision.first;
@@ -127,7 +118,7 @@ void ParticleManager::collisionCheck(Timestep timestep)
 
         float firstMass = first.getMass();
         float secondMass = second.getMass();
-        float massesSum =  firstMass + secondMass;
+        float massesSum = firstMass + secondMass;
         const glm::vec2& firstSpeed = first.getSpeed();
         const glm::vec2& secondSpeed = second.getSpeed();
 
@@ -203,4 +194,27 @@ bool ParticleManager::collisionHappened(const CollisionPair& collicurrentCollisi
         if (collision == collicurrentCollision) return true;
     }        
     return false;
+}
+
+void ParticleManager::dragParticle()
+{
+    static int clickedParticle;
+    if (m_isClicked)
+    {
+        for (auto& particle : m_particles)
+        {
+            int ID = particle.getID();
+            if (clickedParticle == -1 && particle.isInside(m_mousePosition.x, m_mousePosition.y))
+            {
+                clickedParticle = ID;
+                particle.setPosition(m_mousePosition.x, m_mousePosition.y);
+                break;
+            }
+            else if (clickedParticle == ID)
+            {
+                particle.setPosition(m_mousePosition.x, m_mousePosition.y);
+            }
+        }
+    }
+    else clickedParticle = -1;
 }

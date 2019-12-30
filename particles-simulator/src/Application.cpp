@@ -131,6 +131,7 @@ void Application::onKeyPress(KeyPressEvent & e)
             m_isRunning = false;
             break;
         }
+        case GLFW_KEY_ENTER:
         case GLFW_KEY_P:
         {
             m_manager.toggleSimulation();
@@ -170,7 +171,6 @@ void Application::onMouseMove(MouseMoveEvent & e)
     m_mousePosX = float(m_mousePosX / m_window->m_data.windowCenterX);
     m_mousePosY = float(m_mousePosY / m_window->m_data.windowCenterY);
 
-    ParticleRenderer::getInstance().setMousePosition(m_mousePosX, m_mousePosY);
     m_manager.onMouseMove(m_mousePosX, m_mousePosY);
 
     e.m_isHandled = true;
