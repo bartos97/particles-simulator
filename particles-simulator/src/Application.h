@@ -9,7 +9,6 @@
 #include "Game/ParticleManager.h"
 #include "ApplicationModels.h"
 #include <array>
-#include <cstdlib>
 
 #define APP_BIND_EVENT(eventName) \
     m_window->m_data.callbackOn##eventName = std::bind(&Application::on##eventName, this, std::placeholders::_1)

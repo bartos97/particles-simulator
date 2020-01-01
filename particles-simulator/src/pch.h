@@ -13,6 +13,9 @@
 #include <functional>
 #include <utility>
 #include <cmath>
+#include <cstdlib>
+#include <vector>
+#include <array>
 
 #include "Core.h"
 #include "Log.h"

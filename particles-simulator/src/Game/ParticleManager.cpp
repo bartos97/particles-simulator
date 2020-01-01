@@ -1,17 +1,25 @@
 #include "pch.h"
 #include "ParticleManager.h"
 
-ParticleManager::ParticleManager(const AppConfig& config)
+ParticleManager::ParticleManager(AppConfig& config)
+    : m_stateFilePath(Core::PROJECT_ABS_PATH + config.path)
 {
+    config = sanitizeConfig(config);
+
+    if (!config.numSet && loadState())
+    {
+        return;
+    }
+
+    PS_INFO("Generating random simulation state");
     m_particles.reserve(config.num);
     m_collisionsBuffer.reserve(config.num * (config.num - 1));
-    m_stateFilePath = config.path;
 
     std::random_device rd;
     auto randEngine = std::default_random_engine(rd());
     auto distribPos = std::uniform_real_distribution<float>(-1.0f, 1.0f);
-    auto distribSpeed = std::uniform_real_distribution<float>(-0.5f, 0.5f);
-    auto distribRadius = std::uniform_real_distribution<float>(0.025f, 0.2f);
+    auto distribSpeed = std::uniform_real_distribution<float>(config.speedFrom, config.speedTo);
+    auto distribRadius = std::uniform_real_distribution<float>(config.radiusFrom, config.radiusTo);
 
 
     static const size_t MAX_ATTEMPTS = 10000;
@@ -37,7 +45,8 @@ ParticleManager::ParticleManager(const AppConfig& config)
         }
         else
         {
-            glm::vec4 color = glm::vec4(std::abs(speed.x) + std::abs(speed.y), std::abs(pos.x), std::abs(pos.y), 1.0f);
+            float red = (std::abs(speed.x) + std::abs(speed.y)) / 2.0f * config.speedTo;
+            glm::vec4 color = glm::vec4(red, std::abs(pos.x), std::abs(pos.y), 1.0f);
             m_particles.emplace_back(pos, speed, radius, color);
         }
     }
@@ -62,6 +71,85 @@ void ParticleManager::onUpdate(Timestep timestep)
     {
         renderer.render(particle, m_mousePosition);
     }
+}
+
+bool ParticleManager::loadState()
+{
+    bool wasStopped = !m_isRunning;
+    stopSimulation();
+
+    auto& manager = StateManager::getInstance();
+    if (!manager.loadFromFile(m_stateFilePath))
+    {
+        if (manager.getStates().size())
+        {
+            PS_INFO("Latest saved simulation state will be loaded");
+        }
+        else
+        {
+            PS_INFO("Preserving current simulation state");
+            return false;
+        }
+    }
+
+    const auto& states = manager.getStates();
+    size_t numOfStates = states.size();
+    size_t numOfParticles = m_particles.size();
+
+    if (numOfStates >= numOfParticles)
+    {
+        unsigned int i = 0;
+        for (; i < numOfParticles; i++)
+        {
+            m_particles[i].setState(states[i]);
+        }
+
+        if (numOfStates > numOfParticles)
+        {
+            m_particles.reserve(numOfStates);
+            m_collisionsBuffer.reserve(numOfStates * (numOfStates - 1));
+            for (; i < numOfStates; i++)
+            {
+                m_particles.emplace_back(states[i]);
+            }
+        }
+    }
+    else
+    {
+        m_particles.resize(numOfStates);
+        for (unsigned int i = 0; i < numOfStates; i++)
+        {
+            m_particles[i].setState(states[i]);
+        }
+        m_collisionsBuffer.clear();
+        m_collisionsBuffer.reserve(numOfStates * (numOfStates - 1));
+    }
+
+    if (!wasStopped)
+        startSimulation();
+
+    PS_INFO("Simulation state recovered with loaded data");
+    return true;
+}
+
+bool ParticleManager::saveState()
+{
+    bool wasStopped = !m_isRunning;
+    stopSimulation();
+
+    auto& manager = StateManager::getInstance();
+    bool retVal = true;
+    manager.setStates(m_particles);
+    
+    if (!manager.saveToFile(m_stateFilePath))
+    {
+        PS_INFO("Latest saved simulation state will be preserved");
+        retVal = false;
+    }
+
+    if (!wasStopped)
+        startSimulation();
+    return retVal;
 }
 
 void ParticleManager::collisionCheck()
@@ -217,4 +305,41 @@ void ParticleManager::dragParticle()
         }
     }
     else clickedParticle = -1;
+}
+
+AppConfig ParticleManager::sanitizeConfig(const AppConfig& config)
+{
+    float speedTo = AppConfig::DEFAULTS.speedTo;
+    float radiusFrom = AppConfig::DEFAULTS.radiusFrom;
+    float radiusTo = AppConfig::DEFAULTS.radiusTo;
+    bool changed = false;
+
+    if (config.speedTo > 2.0f || config.speedTo <= config.speedFrom)
+    {
+        PS_INFO("Param --speedTo mustn't be greater than 2.0 or smaller than --speedFrom (%f by default).\nUsing default value = %f for --speedTo", 
+                AppConfig::DEFAULTS.speedFrom, 
+                AppConfig::DEFAULTS.speedTo);
+        changed = true;
+    }
+
+    if (config.radiusFrom < AppConfig::DEFAULTS.radiusFrom)
+    {
+        PS_INFO("Param --radiusFrom mustn't be smaller than %f.\nUsing default value = %f for --radiusFrom",
+                AppConfig::DEFAULTS.radiusFrom,
+                AppConfig::DEFAULTS.radiusFrom);
+        changed = true;
+    }
+
+    if (config.radiusTo > 0.5f || config.radiusTo <= config.radiusFrom)
+    {
+        PS_INFO("Param --radiusTo mustn't be greater than 0.5 or smaller than --radiusFrom (%f by default).\nUsing default value = %f for --radiusTo",
+                AppConfig::DEFAULTS.radiusFrom,
+                AppConfig::DEFAULTS.radiusTo);
+        changed = true;
+    }
+
+    if (!changed)
+        return config;
+
+    return { config.num, config.numSet, config.path, config.pathSet, config.speedFrom, speedTo, radiusFrom, radiusTo };
 }

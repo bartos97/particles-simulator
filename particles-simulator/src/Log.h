@@ -28,10 +28,26 @@
     #define GL_CALL(func) func
 #endif // PS_ENABLE_LOG
 
+
 #define PS_INFO(...) \
 { \
     printf(__VA_ARGS__); \
     putchar('\n'); \
+}
+
+#define PS_ERROR_INFO(...) \
+{ \
+    printf("ERROR!: "); \
+    printf(__VA_ARGS__); \
+    putchar('\n'); \
+}
+
+#define PS_ASSERT_INFO(x, ...) \
+{\
+    if (!x) \
+    {\
+        PS_ERROR_INFO(__VA_ARGS__);\
+    } \
 }
 
 

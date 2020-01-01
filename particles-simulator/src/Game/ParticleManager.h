@@ -1,19 +1,37 @@
 #pragma once
-#include "Particle.h"
-#include "Timestep.h"
-#include "ParticleRenderer.h"
 #include <random>
+#include "Timestep.h"
 #include "ApplicationModels.h"
+#include "Game/Particle.h"
+#include "Game/ParticleRenderer.h"
+#include "Game/StateManager.h"
 
 class ParticleManager
 {
 public:
     using CollisionPair = std::pair<Particle&, Particle&>;
 
-    ParticleManager(const AppConfig& config);
+    ParticleManager(AppConfig& config);
     ParticleManager() = default;
 
     void onUpdate(Timestep timestep);
+    bool loadState();
+    bool saveState();
+
+    void startSimulation()
+    {
+        m_isRunning = true;
+    }
+
+    void stopSimulation()
+    {
+        m_isRunning = false;
+    }
+
+    void toggleSimulation()
+    {
+        m_isRunning = !m_isRunning;
+    }
 
     void onMousePress()
     {
@@ -31,21 +49,6 @@ public:
         m_mousePosition.y = mousePosY;
     }
 
-    void startSimulation()
-    {
-        m_isRunning = true;
-    }
-
-    void stopSimulation()
-    {
-        m_isRunning = false;
-    }
-
-    void toggleSimulation()
-    {
-        m_isRunning = !m_isRunning;
-    }
-
 private:
     void collisionCheck();
     void detectCollisions();
@@ -57,6 +60,7 @@ private:
     bool collisionHappened(const CollisionPair& collicurrentCollision);
 
     void dragParticle();
+    AppConfig sanitizeConfig(const AppConfig& config);
 
 private:
     std::vector<Particle> m_particles;

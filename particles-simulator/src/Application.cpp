@@ -64,6 +64,7 @@ bool Application::parseOptions(int argc, char* argv[])
             if (num > 0)
             {
                 m_config.num = num;
+                m_config.numSet = true;
                 return true;
             }
             return false;
@@ -73,12 +74,65 @@ bool Application::parseOptions(int argc, char* argv[])
     static const AppExecParam path = {
         "--path",
         [&](const char* param)->bool {
-            m_config.path = Core::PROJECT_ABS_PATH + std::string(param);
+            m_config.path = Core::PROJECT_ABS_PATH + "../" + std::string(param);
+            m_config.pathSet = true;
             return true;
         }
     };
 
-    static const std::array<const AppExecParam, 2> options = { num, path };
+    static const AppExecParam speedFrom = {
+        "--speedFrom",
+        [&](const char* param)->bool {
+            float num = std::atof(param);
+            if (num > 0.0f)
+            {
+                m_config.speedFrom = num;
+                return true;
+            }
+            return false;
+        }
+    };
+
+    static const AppExecParam speedTo = {
+        "--speedTo",
+        [&](const char* param)->bool {
+            float num = std::atof(param);
+            if (num > 0.0f)
+            {
+                m_config.speedTo = num;
+                return true;
+            }
+            return false;
+        }
+    };
+
+    static const AppExecParam radiusFrom = {
+        "--radiusFrom",
+        [&](const char* param)->bool {
+            float num = std::atof(param);
+            if (num > 0.0f)
+            {
+                m_config.radiusFrom = num;
+                return true;
+            }
+            return false;
+        }
+    };
+
+    static const AppExecParam radiusTo = {
+        "--radiusTo",
+        [&](const char* param)->bool {
+            float num = std::atof(param);
+            if (num > 0.0f)
+            {
+                m_config.radiusTo = num;
+                return true;
+            }
+            return false;
+        }
+    };
+
+    static const std::array<const AppExecParam, 6> options = { num, path, speedFrom, speedTo, radiusFrom, radiusTo };
     
     bool anyValidOption = false;
     for (int i = 1; i < argc; i++)
@@ -131,10 +185,20 @@ void Application::onKeyPress(KeyPressEvent & e)
             m_isRunning = false;
             break;
         }
-        case GLFW_KEY_ENTER:
-        case GLFW_KEY_P:
+        case GLFW_KEY_SPACE:
         {
             m_manager.toggleSimulation();
+            break;
+        }
+        case GLFW_KEY_S:
+        {
+            m_manager.saveState();
+            break;
+        }
+        case GLFW_KEY_L:
+        {
+            m_manager.loadState();
+            break;
         }
     }
 

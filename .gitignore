@@ -2,6 +2,7 @@
 Makefile
 *.ignore.*
 *.ignore/
+state.*
 
 # Becouse we're using premake to generate projects
 *.sln

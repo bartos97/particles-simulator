@@ -1,5 +1,6 @@
 #pragma once
 #include "Timestep.h"
+#include "Game/ParticleState.h"
 #include <sstream>
 
 class Particle
@@ -12,10 +13,18 @@ public:
              const glm::vec2& speed = glm::vec2(0.0f, 0.0f),
              float radius = 0.05f,
              const glm::vec4& color = glm::vec4(0.2f, 0.5f, 0.6f, 1.0f));
+    Particle(const ParticleState& state);
 
-    std::string getDescription() const;
+    Particle& operator =(const Particle&)
+    {
+        return *this;
+    }
+
     void onUpdate(Timestep ts, bool updatePosition);
     void onCollision();
+
+    void setState(const ParticleState& state);
+    ParticleState createState() const;
 
     bool operator==(const Particle& p) const
     {
@@ -129,7 +138,7 @@ private:
     float m_radius;
     float m_area;
     glm::vec4 m_color;
-    const glm::vec4 m_defaultColor;
-    const glm::vec4 m_collisionColorComplement;
+    glm::vec4 m_defaultColor;
+    glm::vec4 m_collisionColorComplement;
     float m_timeSinceCollision = Particle::COLLISION_COLOR_ANIMATION_TIME + 1e-5f;
 };
