@@ -90,7 +90,7 @@ void Window::createWindow()
     PS_ASSERT(m_window, "GLFW window creation fail.");
 
     glfwMakeContextCurrent(m_window);
-    glfwSetWindowPos(m_window, 0, 20);
+    glfwSetWindowPos(m_window, 0, 50);
     glfwShowWindow(m_window);
 
     // associate window data (m_data) with GLFW window (m_window)

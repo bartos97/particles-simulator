@@ -309,10 +309,18 @@ void ParticleManager::dragParticle()
 
 AppConfig ParticleManager::sanitizeConfig(const AppConfig& config)
 {
+    float speedFrom = AppConfig::DEFAULTS.speedFrom;
     float speedTo = AppConfig::DEFAULTS.speedTo;
     float radiusFrom = AppConfig::DEFAULTS.radiusFrom;
     float radiusTo = AppConfig::DEFAULTS.radiusTo;
     bool changed = false;
+
+    if (config.speedFrom < -2.0f || config.speedFrom > 2.0f)
+    {
+        PS_INFO("Param --speedFrom mustn't be smaller than -2.0 or greater than 2.0.\nUsing default value = %f for --speedFrom",
+                AppConfig::DEFAULTS.speedFrom);
+        changed = true;
+    }
 
     if (config.speedTo > 2.0f || config.speedTo <= config.speedFrom)
     {
@@ -322,9 +330,9 @@ AppConfig ParticleManager::sanitizeConfig(const AppConfig& config)
         changed = true;
     }
 
-    if (config.radiusFrom < AppConfig::DEFAULTS.radiusFrom)
+    if (config.radiusFrom < AppConfig::DEFAULTS.radiusFrom || config.radiusFrom > 0.5f)
     {
-        PS_INFO("Param --radiusFrom mustn't be smaller than %f.\nUsing default value = %f for --radiusFrom",
+        PS_INFO("Param --radiusFrom mustn't be smaller than %f or bigger than 0.5.\nUsing default value = %f for --radiusFrom",
                 AppConfig::DEFAULTS.radiusFrom,
                 AppConfig::DEFAULTS.radiusFrom);
         changed = true;
@@ -341,5 +349,5 @@ AppConfig ParticleManager::sanitizeConfig(const AppConfig& config)
     if (!changed)
         return config;
 
-    return { config.num, config.numSet, config.path, config.pathSet, config.speedFrom, speedTo, radiusFrom, radiusTo };
+    return { config.num, config.numSet, config.path, config.pathSet, speedFrom, speedTo, radiusFrom, radiusTo };
 }
