@@ -45,7 +45,7 @@ ParticleManager::ParticleManager(AppConfig& config)
         }
         else
         {
-            float red = (std::abs(speed.x) + std::abs(speed.y)) / 2.0f * config.speedTo;
+            float red = (speed.x + speed.y) / (2.0f * config.speedTo);
             glm::vec4 color = glm::vec4(red, std::abs(pos.x), std::abs(pos.y), 1.0f);
             m_particles.emplace_back(pos, speed, radius, color);
         }
@@ -76,7 +76,8 @@ void ParticleManager::onUpdate(Timestep timestep)
 bool ParticleManager::loadState()
 {
     bool wasStopped = !m_isRunning;
-    stopSimulation();
+    if (!wasStopped)
+        stopSimulation();
 
     auto& manager = StateManager::getInstance();
     if (!manager.loadFromFile(m_stateFilePath))
@@ -125,17 +126,18 @@ bool ParticleManager::loadState()
         m_collisionsBuffer.reserve(numOfStates * (numOfStates - 1));
     }
 
+    PS_INFO("Simulation state recovered with loaded data");
     if (!wasStopped)
         startSimulation();
 
-    PS_INFO("Simulation state recovered with loaded data");
     return true;
 }
 
 bool ParticleManager::saveState()
 {
     bool wasStopped = !m_isRunning;
-    stopSimulation();
+    if (!wasStopped)
+        stopSimulation();
 
     auto& manager = StateManager::getInstance();
     bool retVal = true;
@@ -149,6 +151,7 @@ bool ParticleManager::saveState()
 
     if (!wasStopped)
         startSimulation();
+
     return retVal;
 }
 

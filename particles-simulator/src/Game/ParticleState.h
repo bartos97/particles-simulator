@@ -5,7 +5,7 @@ class Particle;
 
 /*
  * `Memento` in Memento Design Pattern
- * data pattern: position.x;position.y;speed.x;speed.y;radius;color.r;color.g;color.b\n
+ * data pattern: position.x;position.y;speed.x;speed.y;radius;color.r;color.g;color.b
  */
 class ParticleState
 {

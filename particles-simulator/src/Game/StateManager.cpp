@@ -67,7 +67,7 @@ bool StateManager::saveToFile(const std::string& filePath) const
 
     for (const auto& state : m_states)
     {
-        fileStream << state.getState();
+        fileStream << state.getState() << '\n';
     }
 
     if (!fileStream.good())

@@ -74,7 +74,7 @@ bool Application::parseOptions(int argc, char* argv[])
     static const AppExecParam path = {
         "--path",
         [&](const char* param)->bool {
-            m_config.path = Core::PROJECT_ABS_PATH + "../" + std::string(param);
+            m_config.path = "../" + std::string(param);
             m_config.pathSet = true;
             return true;
         }
@@ -83,8 +83,8 @@ bool Application::parseOptions(int argc, char* argv[])
     static const AppExecParam speedFrom = {
         "--speedFrom",
         [&](const char* param)->bool {
-            float num = std::atof(param);
-            if (num > 0.0f)
+            float num = float(std::atof(param));
+            if (num != 0.0f)
             {
                 m_config.speedFrom = num;
                 return true;
@@ -96,8 +96,8 @@ bool Application::parseOptions(int argc, char* argv[])
     static const AppExecParam speedTo = {
         "--speedTo",
         [&](const char* param)->bool {
-            float num = std::atof(param);
-            if (num > 0.0f)
+            float num = float(std::atof(param));
+            if (num != 0.0f)
             {
                 m_config.speedTo = num;
                 return true;
@@ -109,7 +109,7 @@ bool Application::parseOptions(int argc, char* argv[])
     static const AppExecParam radiusFrom = {
         "--radiusFrom",
         [&](const char* param)->bool {
-            float num = std::atof(param);
+            float num = float(std::atof(param));
             if (num > 0.0f)
             {
                 m_config.radiusFrom = num;
@@ -122,7 +122,7 @@ bool Application::parseOptions(int argc, char* argv[])
     static const AppExecParam radiusTo = {
         "--radiusTo",
         [&](const char* param)->bool {
-            float num = std::atof(param);
+            float num = float(std::atof(param));
             if (num > 0.0f)
             {
                 m_config.radiusTo = num;

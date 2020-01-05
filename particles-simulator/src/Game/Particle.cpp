@@ -56,7 +56,7 @@ void Particle::setState(const ParticleState& state)
             break;
         }
 
-        extractedData[i] = std::atof(data.substr(lastPos, pos).c_str());
+        extractedData[i] = float(std::atof(data.substr(lastPos, pos).c_str()));
 
         if (pos == std::string::npos)
         {
@@ -92,7 +92,7 @@ ParticleState Particle::createState() const
         << m_radius         << ';'
         << m_defaultColor.x << ';' 
         << m_defaultColor.y << ';' 
-        << m_defaultColor.z << '\n';
+        << m_defaultColor.z;
 
     return ParticleState(dataStream.str());
 }

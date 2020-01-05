@@ -21,16 +21,18 @@ public:
     void startSimulation()
     {
         m_isRunning = true;
+        PS_INFO("Simulation started.");
     }
 
     void stopSimulation()
     {
         m_isRunning = false;
+        PS_INFO("Simulation stopped.");
     }
 
     void toggleSimulation()
     {
-        m_isRunning = !m_isRunning;
+        m_isRunning ? stopSimulation() : startSimulation();
     }
 
     void onMousePress()
