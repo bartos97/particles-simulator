@@ -3,6 +3,9 @@ Makefile
 *.ignore.*
 *.ignore/
 state.*
+*.zip
+*.7z
+*.rar
 
 # Becouse we're using premake to generate projects
 *.sln
