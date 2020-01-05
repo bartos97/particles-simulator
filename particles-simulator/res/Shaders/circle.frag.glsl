@@ -9,13 +9,14 @@ uniform float u_radius;
 uniform vec2 u_center;
 uniform vec4 u_color;
 
+const float twoSqrt2 = 2 * 1.41421f;
+
 void main()
 {
     vec2 vert = vec2(screenPosition.xy);
     float pixelDist = distance(vert, u_center);
     if (pixelDist > u_radius) discard;
 
-    const float twoSqrt2 = 2 * 1.41421f;
     float mouseDist = (twoSqrt2 - distance(vert, u_mousePosition) * 0.8) / twoSqrt2;
     mouseDist = sqrt(mouseDist);
 
