@@ -16,7 +16,7 @@ Coordinate system used here is the **normalized device coordinates** system used
 When cloning repo make sure you're using `--recurse-submodules` flag.
 
 ## How to run
-Use `run.bat` script. In source code it is in `scripts/` folder, in release zip it's in root directory. You can pass command line options, described below.
+Use `run.bat` script. It's in root directory. You can pass command line options, described below.
 
 ### Command line options
 - `--num` (default: `10`) how many particles to generate
